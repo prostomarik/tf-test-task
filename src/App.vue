@@ -1,22 +1,28 @@
 <template>
-  <div id="app"></div>
+  <div id="app">
+    <HomeView />
+  </div>
 </template>
 
 <script>
+import HomeView from '@/views/HomeView.vue'
+
 export default {
   name: 'App',
 
-  components: {},
+  components: { HomeView },
 }
 </script>
 
 <style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+body {
+  margin: 0;
+
+  #app {
+    font-family: Avenir, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: #2c3e50;
+  }
 }
 </style>
