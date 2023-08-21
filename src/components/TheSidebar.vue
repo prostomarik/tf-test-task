@@ -1,12 +1,10 @@
 <template>
   <div class="sidebar">
     <div class="sidebar__buttons">
-      <button type="button" @click="activeBtn = 'routes'" :class="{ active: activeBtn === 'routes' }">
-        Маршруты
-      </button>
-      <button type="button" @click="activeBtn = 'stops'" :class="{ active: activeBtn === 'stops' }">
-        Остановки
-      </button>
+      <v-btn-toggle v-model="activeBtn" mandatory>
+        <v-btn value="routes">Маршруты</v-btn>
+        <v-btn value="stops">Остановки</v-btn>
+      </v-btn-toggle>
     </div>
 
     <ag-grid-vue class="sidebar__table ag-theme-alpine" :columnDefs="columnDefs" :rowData="rowData" />
@@ -14,8 +12,9 @@
 </template>
 
 <script>
-import axios from 'axios'
 import { AgGridVue } from 'ag-grid-vue'
+
+import { mapState, mapGetters } from 'vuex'
 
 export default {
   name: 'TheSidebar',
@@ -40,7 +39,7 @@ export default {
         {
           field: 'ID',
           headerName: 'Кол-во маршрутов',
-          valueGetter: (params) => this.numberOfRoutesById[params.data.ID],
+          valueGetter: (params) => this.getNumberOfRoutesById[params.data.ID],
         },
         {
           field: 'Forward',
@@ -49,17 +48,16 @@ export default {
         },
       ],
 
-      routes: [],
-      stops: [],
-
-      numberOfRoutesById: [],
-
       activeBtn: 'routes',
     }
   },
 
-  mounted() {
-    this.initTable()
+  computed: {
+    ...mapState({
+      routes: (state) => state.routes,
+      stops: (state) => state.stops,
+    }),
+    ...mapGetters(['getNumberOfRoutesById']),
   },
 
   watch: {
@@ -74,23 +72,12 @@ export default {
     },
   },
 
-  methods: {
-    async initTable() {
-      this.routes = await axios
-        .get('https://220.transflow.ru/api/public/v1/routes_data?key=012345678abc')
-        .then((response) => response.data)
-
-      this.stops = this.routes.map((route) => route.Stops).flat()
-
-      const ids = this.stops.map((stop) => stop.ID)
-      ids.forEach((ids) => {
-        this.numberOfRoutesById[ids] = (this.numberOfRoutesById[ids] || 0) + 1
-      })
-
-      this.columnDefs = this.columnsForRoutes
-      this.rowData = this.routes
-    },
+  mounted() {
+    this.columnDefs = this.columnsForRoutes
+    this.rowData = this.routes
   },
+
+  methods: {},
 }
 </script>
 
@@ -103,20 +90,13 @@ export default {
   padding: 20px;
 
   &__buttons {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    gap: 20px;
+    text-align: center;
     margin-bottom: 20px;
-
-    .active {
-      background-color: grey;
-    }
   }
 
   &__table {
     width: 100%;
-    height: calc(100% - 40px);
+    height: calc(100vh - 108px);
   }
 }
 </style>

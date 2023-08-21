@@ -5,6 +5,8 @@
 <script>
 import L from 'leaflet'
 
+import { mapState } from 'vuex'
+
 export default {
   name: 'TheMap',
 
@@ -14,45 +16,62 @@ export default {
         center: L.latLng(37.0902, -95.7129),
         zoom: 4,
       },
-      mapInstance: null,
-      layerControlInstance: null,
+      map: null,
+      layerControl: null,
     }
+  },
+
+  computed: {
+    ...mapState({
+      routes: (state) => state.routes,
+      stops: (state) => state.stops,
+    }),
   },
 
   mounted() {
     this.initMap()
+
+    this.addRoutesToMap()
   },
 
   methods: {
     initMap() {
-      const pointsForJson = [
-        [5.58611, 43.296665],
-        [5.614466, 43.190604],
-        [5.565922, 43.254726],
-        [5.376992, 43.302967],
-      ]
-
-      const map = L.map('map', this.mapOptions)
-
-      pointsForJson.forEach(function (lngLat) {
-        L.marker([lngLat[1], lngLat[0]]).addTo(map)
-      })
-      const polyline = L.polyline(pointsForJson.map((lngLat) => [lngLat[1], lngLat[0]])).addTo(map)
+      this.map = L.map('map', this.mapOptions)
 
       const tile = L.tileLayer(`https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png`, {
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      }).addTo(map)
+      }).addTo(this.map)
 
-      map.fitBounds(polyline.getBounds())
-
-      this.layerControlInstance = L.control
+      this.layerControl = L.control
         .layers({
           OpenStreetMap: tile,
         })
-        .addTo(map)
+        .addTo(this.map)
+    },
 
-      this.mapInstance = map
+    addRoutesToMap() {
+      this.routes.forEach((route) => {
+        if (route.Points) {
+          const points = route.Points.map((point) => [point.Lat, point.Lon])
+
+          L.polyline(points).bindTooltip(route.Name).addTo(this.map)
+        }
+
+        route.Stops.forEach((stop) => {
+          L.marker([stop.Lat, stop.Lon], {
+            icon: L.icon({
+              iconUrl: stop.Forward
+                ? require('../assets/forward-true.svg')
+                : require('../assets/forward-false.svg'),
+              iconSize: [26, 26],
+              iconAnchor: [5, 26],
+            }),
+          })
+            .bindTooltip(stop.Name)
+            .addTo(this.map)
+        })
+      })
     },
   },
 
