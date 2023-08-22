@@ -7,14 +7,20 @@
       </v-btn-toggle>
     </div>
 
-    <ag-grid-vue class="sidebar__table ag-theme-alpine" :columnDefs="columnDefs" :rowData="rowData" />
+    <ag-grid-vue
+      class="sidebar__table ag-theme-alpine"
+      :columnDefs="columnDefs"
+      :rowData="rowData"
+      @rowClicked="onRowClicked"
+    />
   </div>
 </template>
 
 <script>
 import { AgGridVue } from 'ag-grid-vue'
-
 import { mapState, mapGetters } from 'vuex'
+
+import eventBus from '@/eventBus'
 
 export default {
   name: 'TheSidebar',
@@ -77,7 +83,11 @@ export default {
     this.rowData = this.routes
   },
 
-  methods: {},
+  methods: {
+    onRowClicked(params) {
+      eventBus.$emit('show-route', params.node.data.ID)
+    },
+  },
 }
 </script>
 
