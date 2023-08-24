@@ -10,8 +10,9 @@
     <ag-grid-vue
       class="sidebar__table ag-theme-alpine"
       :columnDefs="columnDefs"
+      rowSelection="single"
       :rowData="rowData"
-      @rowClicked="onRowClicked"
+      @selection-changed="onSelectionChanged"
     />
   </div>
 </template>
@@ -84,8 +85,10 @@ export default {
   },
 
   methods: {
-    onRowClicked(params) {
-      eventBus.$emit('show-route', params.node.data.ID)
+    onSelectionChanged(params) {
+      const selectedRow = params.api.getSelectedRows()[0]
+      console.log(selectedRow)
+      eventBus.$emit('show-route', { id: selectedRow.ID, type: this.activeBtn })
     },
   },
 }

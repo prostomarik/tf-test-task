@@ -21,6 +21,7 @@ export default {
       layerControl: null,
 
       routesLayer: {},
+      lastObjectId: null,
     }
   },
 
@@ -32,11 +33,10 @@ export default {
   },
 
   mounted() {
-    eventBus.$on('show-route', this.openRoute)
+    eventBus.$on('show-route', this.showObject)
 
     this.initMap()
-
-    this.addRoutesToMap()
+    this.initRoutes()
   },
 
   methods: {
@@ -51,18 +51,27 @@ export default {
       this.layerControl = L.control.layers({ OpenStreetMap: tile }).addTo(this.map)
     },
 
-    addRoutesToMap() {
+    initRoutes() {
       this.routes.forEach((route) => {
         // некоторые маршруты не имеют Points
         if (route.Points) {
-          const points = route.Points.map((point) => [point.Lat, point.Lon])
+          const forwardTrueRoutePoints = route.Points.filter((point) => point.Forward === true).map(
+            (point) => [point.Lat, point.Lon]
+          )
+          const forwardFalseRoutePoints = route.Points.filter((point) => point.Forward === false).map(
+            (point) => [point.Lat, point.Lon]
+          )
+
           this.routesLayer[route.ID] = {
-            route: L.polyline(points).bindTooltip(route.Name),
+            route: L.featureGroup([
+              L.polyline(forwardTrueRoutePoints, { color: 'blue' }).bindTooltip(route.Name),
+              L.polyline(forwardFalseRoutePoints, { color: 'red' }).bindTooltip(route.Name),
+            ]),
             stops: {},
           }
 
           route.Stops.forEach((stop) => {
-            // ids с бэка для остановок повторяются
+            // многие ids остановок с бэка повторяются
             if (!this.routesLayer[route.ID].stops[stop.ID]) {
               this.routesLayer[route.ID].stops[stop.ID] = L.marker([stop.Lat, stop.Lon], {
                 icon: L.icon({
@@ -77,58 +86,38 @@ export default {
           })
         }
       })
-
-      const routesLayerGroup = Object.values(this.routesLayer).map((value) => value.route)
-      const stopsLayerGroup = []
-
-      Object.values(this.routesLayer).forEach((value) => {
-        Object.values(value.stops).forEach((stop) => {
-          stopsLayerGroup.push(stop)
-        })
-      })
-
-      const routesFeatureGroup = L.featureGroup(routesLayerGroup)
-        .addTo(this.map)
-        .on('click', this.zoomToFeature)
-      L.featureGroup(stopsLayerGroup).addTo(this.map)
-
-      this.map.fitBounds(routesFeatureGroup.getBounds())
     },
 
-    openRoute(layerId) {
-      if (!this.routesLayer[layerId]) {
-        return
-      }
+    showObject(selectedObject) {
+      const { id, type } = selectedObject
 
-      Object.entries(this.routesLayer).forEach(([id, value]) => {
-        if (Number(id) !== layerId) {
-          this.map.removeLayer(value.route)
+      if (type === 'routes') {
+        if (!this.routesLayer[id]) {
+          return
         }
-      })
 
-      Object.values(this.routesLayer).forEach((value) => {
-        Object.values(value.stops).forEach((stop) => {
-          this.map.removeLayer(stop)
+        if (this.lastObjectId) {
+          this.removePreviousObject(this.lastObjectId)
+        }
+
+        this.routesLayer[id].route.addTo(this.map)
+        Object.values(this.routesLayer[id].stops).forEach((stop) => {
+          stop.addTo(this.map)
         })
-      })
+        this.map.fitBounds(this.routesLayer[id].route.getBounds())
 
-      this.map.fitBounds(this.routesLayer[layerId].route.getBounds())
+        this.lastObjectId = id
+      } else if (type === 'stops') {
+        //
+      }
     },
 
-    zoomToFeature(e) {
-      Object.values(this.routesLayer).forEach((value) => {
-        this.map.removeLayer(value.route)
+    removePreviousObject(lastLayerId) {
+      this.map.removeLayer(this.routesLayer[lastLayerId].route)
+
+      Object.values(this.routesLayer[lastLayerId].stops).forEach((stop) => {
+        this.map.removeLayer(stop)
       })
-
-      this.map.addLayer(e.layer)
-
-      Object.values(this.routesLayer).forEach((value) => {
-        Object.values(value.stops).forEach((stop) => {
-          this.map.removeLayer(stop)
-        })
-      })
-
-      this.map.fitBounds(e.layer.getBounds())
     },
   },
 
