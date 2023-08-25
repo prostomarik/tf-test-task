@@ -88,11 +88,12 @@ export default {
       })
     },
 
-    showObject(selectedObject) {
-      const { id, type } = selectedObject
+    showObject(args) {
+      const { selectedRow, type } = args
+      const { ID } = selectedRow
 
       if (type === 'routes') {
-        if (!this.routesLayer[id]) {
+        if (!this.routesLayer[ID]) {
           return
         }
 
@@ -100,15 +101,20 @@ export default {
           this.removePreviousObject(this.lastObjectId)
         }
 
-        this.routesLayer[id].route.addTo(this.map)
-        Object.values(this.routesLayer[id].stops).forEach((stop) => {
-          stop.addTo(this.map)
-        })
-        this.map.fitBounds(this.routesLayer[id].route.getBounds())
+        const route = this.routesLayer[ID].route
 
-        this.lastObjectId = id
+        route.addTo(this.map)
+        Object.values(this.routesLayer[ID].stops).forEach((stop) => stop.addTo(this.map))
+        this.map.fitBounds(route.getBounds())
+
+        this.lastObjectId = ID
       } else if (type === 'stops') {
-        //
+        const { RouteID } = selectedRow
+
+        const stop = this.routesLayer[RouteID].stops[ID]
+        stop.addTo(this.map)
+
+        this.map.setView(stop._latlng, 20)
       }
     },
 

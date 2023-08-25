@@ -87,8 +87,7 @@ export default {
   methods: {
     onSelectionChanged(params) {
       const selectedRow = params.api.getSelectedRows()[0]
-      console.log(selectedRow)
-      eventBus.$emit('show-route', { id: selectedRow.ID, type: this.activeBtn })
+      eventBus.$emit('show-route', { selectedRow, type: this.activeBtn })
     },
   },
 }
