@@ -9,7 +9,7 @@ import { mapState } from 'vuex'
 import eventBus from '@/eventBus'
 
 export default {
-  name: 'TheMap',
+  name: 'LeafletMap',
 
   data() {
     return {
@@ -79,7 +79,6 @@ export default {
                     ? require('../assets/forward-true.svg')
                     : require('../assets/forward-false.svg'),
                   iconSize: [26, 26],
-                  iconAnchor: [5, 26],
                 }),
               }).bindTooltip(stop.Name)
             }

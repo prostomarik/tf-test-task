@@ -1,16 +1,27 @@
 <template>
   <div id="app">
-    <HomeView />
+    <div v-if="loading" class="app__loader">
+      <v-progress-circular :size="100" indeterminate />
+    </div>
+
+    <router-view v-else />
   </div>
 </template>
 
 <script>
-import HomeView from '@/views/HomeView.vue'
-
 export default {
   name: 'App',
 
-  components: { HomeView },
+  data() {
+    return {
+      loading: true,
+    }
+  },
+
+  async mounted() {
+    await this.$store.dispatch('initData')
+    this.loading = false
+  },
 }
 </script>
 
@@ -23,6 +34,14 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: #2c3e50;
+  }
+
+  .app__loader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
   }
 }
 </style>

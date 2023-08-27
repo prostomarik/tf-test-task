@@ -8,31 +8,42 @@
     </div>
 
     <ag-grid-vue
+      v-if="activeBtn === 'routes'"
       class="sidebar__table ag-theme-alpine"
-      :columnDefs="columnDefs"
+      :columnDefs="columnsForRoutes"
       rowSelection="single"
-      :rowData="rowData"
-      @selection-changed="onSelectionChanged"
+      :rowData="routes"
+      :allowContextMenuWithControlKey="true"
+      :getContextMenuItems="getContextMenuItem"
+      @selection-changed="selectRow"
+    />
+
+    <ag-grid-vue
+      v-else-if="activeBtn === 'stops'"
+      class="sidebar__table ag-theme-alpine"
+      :columnDefs="columnsForStops"
+      rowSelection="single"
+      :rowData="stops"
+      @selection-changed="selectRow"
     />
   </div>
 </template>
 
 <script>
+import 'ag-grid-enterprise'
 import { AgGridVue } from 'ag-grid-vue'
-import { mapState, mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import eventBus from '@/eventBus'
 
 export default {
-  name: 'TheSidebar',
+  // eslint-disable-next-line vue/multi-word-component-names
+  name: 'Sidebar',
 
   components: { AgGridVue },
 
   data() {
     return {
-      columnDefs: [],
-      rowData: [],
-
       columnsForRoutes: [
         { field: 'Name', headerName: 'Имя' },
         {
@@ -67,27 +78,28 @@ export default {
     ...mapGetters(['getNumberOfRoutesById']),
   },
 
-  watch: {
-    activeBtn(value) {
-      if (value === 'stops') {
-        this.columnDefs = this.columnsForStops
-        this.rowData = this.stops
-      } else {
-        this.columnDefs = this.columnsForRoutes
-        this.rowData = this.routes
-      }
-    },
-  },
-
-  mounted() {
-    this.columnDefs = this.columnsForRoutes
-    this.rowData = this.routes
-  },
-
   methods: {
-    onSelectionChanged(params) {
+    selectRow(params) {
       const selectedRow = params.api.getSelectedRows()[0]
       eventBus.$emit('show-route', { selectedRow, type: this.activeBtn })
+    },
+
+    getContextMenuItem(params) {
+      return [
+        {
+          name: 'Подробно',
+          action: () => {
+            this.openAboutItemPage(params.node.data)
+          },
+        },
+      ]
+    },
+
+    openAboutItemPage(item) {
+      this.$router.push({
+        name: 'RouteData',
+        params: { id: item.ID },
+      })
     },
   },
 }
