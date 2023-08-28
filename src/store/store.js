@@ -11,6 +11,7 @@ export default new Vuex.Store({
   },
 
   getters: {
+    // возвращаю объект со списком уникальных остановок и их количеством
     getNumberOfRoutesById(state) {
       const ids = state.stops.map((stop) => stop.ID)
       const numberOfRoutesById = {}

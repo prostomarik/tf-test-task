@@ -1,27 +1,30 @@
 import Vue from 'vue'
-import App from './App.vue'
 import VueRouter from 'vue-router'
 import store from './store/store'
-import vuetify from '@/plugins/vuetify'
-
+import Vuetify from 'vuetify'
+import 'vuetify/dist/vuetify.min.css'
+import App from './App.vue'
 import HomeView from '@/views/HomeView.vue'
 import RouteDataView from '@/views/RouteDataView.vue'
 
+Vue.use(VueRouter)
+Vue.use(Vuetify)
+
 Vue.config.productionTip = false
 
-Vue.use(VueRouter)
+export const eventBus = new Vue()
 const router = new VueRouter({
   mode: 'history',
   routes: [
-    { path: '/', name: 'Home', component: HomeView },
+    { path: '', name: 'Home', component: HomeView },
     {
       path: '/route/:id',
       name: 'RouteData',
       component: RouteDataView,
-      props: true,
     },
   ],
 })
+const vuetify = new Vuetify({})
 
 new Vue({
   router,

@@ -16,13 +16,13 @@
       </div>
 
       <div class="route-data-view__right-side">
-        <div class="route-data-view__forward-true-stops">
+        <div class="route-data-view__forward-true">
           <b>Cписок остановок в прямом направлении:</b>
 
           <div v-for="stop in forwardTrueStops" :key="stop.ID">- {{ stop.Name }}</div>
         </div>
 
-        <div class="route-data-view__forward-false-stops" style="">
+        <div class="route-data-view__forward-false" style="">
           <b>Cписок остановок в обратном направлении:</b>
 
           <div v-for="stop in forwardFalseStops" :key="stop.ID">- {{ stop.Name }}</div>
@@ -113,13 +113,13 @@ export default {
     gap: 20px;
   }
 
-  &__forward-true-stops {
+  &__forward-true {
     background: blue;
     color: white;
     padding: 10px 20px;
   }
 
-  &__forward-false-stops {
+  &__forward-false {
     background: red;
     color: white;
     padding: 10px 20px;

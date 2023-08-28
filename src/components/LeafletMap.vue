@@ -6,7 +6,7 @@
 import L from 'leaflet'
 import { mapState } from 'vuex'
 
-import eventBus from '@/eventBus'
+import { eventBus } from '@/main'
 
 export default {
   name: 'LeafletMap',
@@ -33,7 +33,9 @@ export default {
   },
 
   mounted() {
-    eventBus.$on('show-route', this.showObject)
+    // использую eventBus, чтобы напрямую общаться с компонентом Sidebar, не передавая через родителя
+    eventBus.$on('show-object', this.showObject)
+    eventBus.$on('hide-object', this.hideObject)
 
     this.initMap()
     this.initRoutes()
@@ -91,13 +93,13 @@ export default {
       const { selectedRow, type } = args
       const { ID } = selectedRow
 
+      if (this.lastObjectId) {
+        this.hideObject(this.lastObjectId)
+      }
+
       if (type === 'routes') {
         if (!this.routesLayer[ID]) {
           return
-        }
-
-        if (this.lastObjectId) {
-          this.removePreviousObject(this.lastObjectId)
         }
 
         const route = this.routesLayer[ID].route
@@ -105,8 +107,6 @@ export default {
         route.addTo(this.map)
         Object.values(this.routesLayer[ID].stops).forEach((stop) => stop.addTo(this.map))
         this.map.fitBounds(route.getBounds())
-
-        this.lastObjectId = ID
       } else if (type === 'stops') {
         const { RouteID } = selectedRow
 
@@ -115,19 +115,30 @@ export default {
 
         this.map.setView(stop._latlng, 20)
       }
+
+      this.lastObjectId = { selectedRow, type }
     },
 
-    removePreviousObject(lastLayerId) {
-      this.map.removeLayer(this.routesLayer[lastLayerId].route)
+    hideObject(args) {
+      const { selectedRow, type } = args
+      const { ID } = selectedRow
 
-      Object.values(this.routesLayer[lastLayerId].stops).forEach((stop) => {
+      if (type === 'routes') {
+        this.map.removeLayer(this.routesLayer[ID].route)
+
+        Object.values(this.routesLayer[ID].stops).forEach((stop) => {
+          this.map.removeLayer(stop)
+        })
+      } else if (type === 'stops') {
+        const stop = this.routesLayer[selectedRow.RouteID].stops[ID]
         this.map.removeLayer(stop)
-      })
+      }
     },
   },
 
   beforeDestroy() {
     eventBus.$off('show-route')
+    eventBus.$off('hide-route')
   },
 
   destroyed() {
