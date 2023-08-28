@@ -1,5 +1,5 @@
 <template>
-  <div id="map"></div>
+  <div id="leafletMap"></div>
 </template>
 
 <script>
@@ -17,7 +17,7 @@ export default {
         center: L.latLng(37.0902, -95.7129),
         zoom: 4,
       },
-      map: null,
+      leafletMap: null,
       layerControl: null,
 
       routesLayer: {},
@@ -43,14 +43,14 @@ export default {
 
   methods: {
     initMap() {
-      this.map = L.map('map', this.mapOptions)
+      this.leafletMap = L.map('leafletMap', this.mapOptions)
 
       const tile = L.tileLayer(`https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png`, {
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      }).addTo(this.map)
+      }).addTo(this.leafletMap)
 
-      this.layerControl = L.control.layers({ OpenStreetMap: tile }).addTo(this.map)
+      this.layerControl = L.control.layers({ OpenStreetMap: tile }).addTo(this.leafletMap)
     },
 
     initRoutes() {
@@ -104,16 +104,16 @@ export default {
 
         const route = this.routesLayer[ID].route
 
-        route.addTo(this.map)
-        Object.values(this.routesLayer[ID].stops).forEach((stop) => stop.addTo(this.map))
-        this.map.fitBounds(route.getBounds())
+        route.addTo(this.leafletMap)
+        Object.values(this.routesLayer[ID].stops).forEach((stop) => stop.addTo(this.leafletMap))
+        this.leafletMap.fitBounds(route.getBounds())
       } else if (type === 'stops') {
         const { RouteID } = selectedRow
 
         const stop = this.routesLayer[RouteID].stops[ID]
-        stop.addTo(this.map)
+        stop.addTo(this.leafletMap)
 
-        this.map.setView(stop._latlng, 20)
+        this.leafletMap.setView(stop._latlng, 20)
       }
 
       this.lastObjectId = { selectedRow, type }
@@ -124,14 +124,14 @@ export default {
       const { ID } = selectedRow
 
       if (type === 'routes') {
-        this.map.removeLayer(this.routesLayer[ID].route)
+        this.leafletMap.removeLayer(this.routesLayer[ID].route)
 
         Object.values(this.routesLayer[ID].stops).forEach((stop) => {
-          this.map.removeLayer(stop)
+          this.leafletMap.removeLayer(stop)
         })
       } else if (type === 'stops') {
         const stop = this.routesLayer[selectedRow.RouteID].stops[ID]
-        this.map.removeLayer(stop)
+        this.leafletMap.removeLayer(stop)
       }
     },
   },
@@ -140,19 +140,13 @@ export default {
     eventBus.$off('show-route')
     eventBus.$off('hide-route')
   },
-
-  destroyed() {
-    if (this.map) {
-      this.map.remove()
-    }
-  },
 }
 </script>
 
 <style scoped>
 @import 'leaflet/dist/leaflet.css';
 
-#map {
+#leafletMap {
   height: 100vh;
   width: 75%;
   overflow: hidden;
